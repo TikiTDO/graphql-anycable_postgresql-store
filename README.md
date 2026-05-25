@@ -1,5 +1,7 @@
 # GraphQL AnyCable PostgreSQL Store
 
+[![Tests](https://github.com/TikiTDO/graphql-anycable_postgresql-store/actions/workflows/test.yml/badge.svg)](https://github.com/TikiTDO/graphql-anycable_postgresql-store/actions/workflows/test.yml)
+
 PostgreSQL subscription store for [`graphql-anycable`](https://github.com/anycable/graphql-anycable).
 
 This gem stores GraphQL subscription state in PostgreSQL. It does not deliver AnyCable broadcasts itself; delivery still goes through the AnyCable broadcast adapter configured by the application.
@@ -102,3 +104,5 @@ GRAPHQL_ANYCABLE_PATH=../graphql-anycable bundle exec rspec
 ```
 
 Set `POSTGRES_URL` or `DATABASE_URL` to run the store integration spec against PostgreSQL.
+
+CI runs the spec suite against a PostgreSQL service and checks out the `graphql-anycable` interface branch until the custom store API is released.

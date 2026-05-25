@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir.chdir(__dir__) do
     `git ls-files -z`.split("\x0").reject do |file|
-      file.start_with?("spec/", ".git", "Gemfile")
+      file.start_with?("spec/", ".github/", ".git", "Gemfile")
     end
   end
   spec.require_paths = ["lib"]
