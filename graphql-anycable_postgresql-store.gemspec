@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
     "bug_tracker_uri" => "https://github.com/TikiTDO/graphql-anycable_postgresql-store/issues",
     "changelog_uri" => "https://github.com/TikiTDO/graphql-anycable_postgresql-store/releases",
     "homepage_uri" => spec.homepage,
+    "allowed_push_host" => "https://rubygems.org",
     "rubygems_mfa_required" => "true",
     "source_code_uri" => spec.homepage
   }
@@ -25,6 +26,7 @@ Gem::Specification.new do |spec|
       file.start_with?("spec/", ".github/", ".git", "Gemfile")
     end
   end
+  spec.files = (spec.files + %w[CHANGELOG.md]).uniq
   spec.require_paths = ["lib"]
 
   spec.required_ruby_version = ">= 3.0.0"

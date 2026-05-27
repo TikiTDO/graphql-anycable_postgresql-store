@@ -263,7 +263,9 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
   end
 
   def connection
-    @connection ||= PG.connect(postgres_url)
+    @connection ||= PG.connect(postgres_url).tap do |conn|
+      conn.set_notice_processor { |_notice| }
+    end
   end
 
   def write_subscription(subscription_id, channel_id, topic, fingerprint)
@@ -286,26 +288,29 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
         context text NOT NULL,
         operation_name text NOT NULL,
         events jsonb NOT NULL DEFAULT '{}',
-        expires_at timestamp,
-        created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+        expires_at timestamptz,
+        created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE graphql_anycable_test_subscription_events (
         subscription_id text NOT NULL REFERENCES graphql_anycable_test_subscriptions(id) ON DELETE CASCADE,
         topic text NOT NULL,
         fingerprint text NOT NULL,
-        created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (subscription_id, topic, fingerprint)
       );
 
       CREATE INDEX index_graphql_anycable_test_events_topic_fingerprint
         ON graphql_anycable_test_subscription_events (topic, fingerprint);
 
+      CREATE INDEX index_graphql_anycable_test_events_fingerprint
+        ON graphql_anycable_test_subscription_events (fingerprint);
+
       CREATE TABLE graphql_anycable_test_channel_subscriptions (
         channel_id text NOT NULL,
         subscription_id text NOT NULL REFERENCES graphql_anycable_test_subscriptions(id) ON DELETE CASCADE,
-        created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (channel_id, subscription_id)
       );
     SQL

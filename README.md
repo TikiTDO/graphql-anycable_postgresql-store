@@ -71,26 +71,29 @@ CREATE TABLE graphql_anycable_subscriptions (
   context text NOT NULL,
   operation_name text NOT NULL,
   events jsonb NOT NULL DEFAULT '{}',
-  expires_at timestamp,
-  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  expires_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE graphql_anycable_subscription_events (
   subscription_id text NOT NULL REFERENCES graphql_anycable_subscriptions(id) ON DELETE CASCADE,
   topic text NOT NULL,
   fingerprint text NOT NULL,
-  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (subscription_id, topic, fingerprint)
 );
 
 CREATE INDEX index_graphql_anycable_subscription_events_topic_fingerprint
   ON graphql_anycable_subscription_events (topic, fingerprint);
 
+CREATE INDEX index_graphql_anycable_subscription_events_fingerprint
+  ON graphql_anycable_subscription_events (fingerprint);
+
 CREATE TABLE graphql_anycable_channel_subscriptions (
   channel_id text NOT NULL,
   subscription_id text NOT NULL REFERENCES graphql_anycable_subscriptions(id) ON DELETE CASCADE,
-  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (channel_id, subscription_id)
 );
 ```
@@ -114,3 +117,21 @@ GRAPHQL_ANYCABLE_PATH=../graphql-anycable bundle exec rspec
 Set `POSTGRES_URL` or `DATABASE_URL` to run the store integration spec against PostgreSQL.
 
 CI runs the spec suite against a PostgreSQL service and checks out the `graphql-anycable` interface branch until the custom store API is released.
+
+## Release
+
+Release notes are kept in `CHANGELOG.md` and published through GitHub Releases.
+Build the gem with:
+
+```sh
+bundle exec rake build
+```
+
+Publish the same versioned gem artifact to RubyGems and GitHub Releases:
+
+```sh
+gem push pkg/graphql-anycable_postgresql-store-0.1.0.gem
+gh release create v0.1.0 pkg/graphql-anycable_postgresql-store-0.1.0.gem \
+  --title "v0.1.0" \
+  --notes-file CHANGELOG.md
+```
