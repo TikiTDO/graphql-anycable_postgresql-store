@@ -223,6 +223,32 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
         "fingerprint-shared" => ["subscription-2"]
       )
     end
+
+    it "returns active subscription statistics" do
+      write_subscription("subscription-1", "channel-1", "productUpdated", "fingerprint-a")
+      write_subscription("subscription-2", "channel-1", "productUpdated", "fingerprint-b")
+      write_subscription("subscription-3", "channel-2", "productCreated", "fingerprint-c")
+      store.write_subscription(
+        "expired-subscription",
+        channel_id: "channel-expired",
+        data: data.merge(events: {"productUpdated" => "fingerprint-expired"}.to_json),
+        events: [double(topic: "productUpdated", fingerprint: "fingerprint-expired")],
+        expiration_seconds: -1
+      )
+
+      expect(store.stats(scan_count: 100, include_subscriptions: true)).to eq(
+        total: {
+          subscription: 3,
+          fingerprints: 2,
+          subscriptions: 3,
+          channel: 2
+        },
+        subscriptions: {
+          "productCreated" => 1,
+          "productUpdated" => 2
+        }
+      )
+    end
   end
 
   private

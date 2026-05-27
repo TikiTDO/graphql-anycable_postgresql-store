@@ -95,6 +95,14 @@ CREATE TABLE graphql_anycable_channel_subscriptions (
 );
 ```
 
+## Stats
+
+`GraphQL::AnyCable.stats` delegates to this store when `subscription_store` is
+configured as `:postgresql` or `:postgres`. The store reports active
+subscriptions, topics, fingerprints, and channels with SQL aggregate queries;
+`scan_count` is accepted for graphql-anycable interface compatibility and is not
+used by PostgreSQL.
+
 ## Development
 
 Install dependencies and run tests:
