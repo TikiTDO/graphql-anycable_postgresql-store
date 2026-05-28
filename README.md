@@ -127,18 +127,12 @@ CI runs the spec suite against a PostgreSQL service and checks out the `graphql-
 
 ## Release
 
-Release notes are kept in `CHANGELOG.md` and published through GitHub Releases.
-Build the gem with:
+Release notes are kept in `CHANGELOG.md`. Follow `RELEASE.md` for the full
+RubyGems plus GitHub Releases workflow.
 
 ```sh
+version=$(ruby -Ilib -rgraphql/anycable/postgresql_store/version -e 'puts GraphQL::AnyCable::PostgreSQLStore::VERSION')
 bundle exec rake build
-```
-
-Publish the same versioned gem artifact to RubyGems and GitHub Releases:
-
-```sh
-gem push pkg/graphql-anycable_postgresql-store-0.2.0.gem
-gh release create v0.2.0 pkg/graphql-anycable_postgresql-store-0.2.0.gem \
-  --title "v0.2.0" \
-  --notes-file CHANGELOG.md
+gem push "pkg/graphql-anycable_postgresql-store-${version}.gem"
+gh release create "v${version}" "pkg/graphql-anycable_postgresql-store-${version}.gem"
 ```
