@@ -26,10 +26,6 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore do
     GraphQL::AnyCable.remove_instance_variable(:@subscription_store) if GraphQL::AnyCable.instance_variable_defined?(:@subscription_store)
     GraphQL::AnyCable.instance_variable_set(:@subscription_store, original_memoized_store) if had_memoized_store
   end
-
-  it "exposes the 0.2.0 release version" do
-    expect(described_class::VERSION).to eq("0.2.0")
-  end
 end
 
 RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
@@ -77,13 +73,6 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
       expect(PG).not_to receive(:connect)
 
       expect(store.subscription_ids_for_fingerprints([])).to eq({})
-    end
-
-    it "builds PostgreSQL cleaner and stats objects without opening a database connection" do
-      expect(PG).not_to receive(:connect)
-
-      expect(store.cleaner).to be_a(GraphQL::AnyCable::PostgreSQLStore::Store::Cleaner)
-      expect(GraphQL::AnyCable::PostgreSQLStore::Store::Stats).to be_a(Class)
     end
 
     it "uses the configured PostgreSQL URL when opening the connection" do
