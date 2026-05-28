@@ -6,7 +6,7 @@ PostgreSQL subscription store for [`graphql-anycable`](https://github.com/anycab
 
 This gem stores GraphQL subscription state in PostgreSQL. It does not deliver AnyCable broadcasts itself; delivery still goes through the AnyCable broadcast adapter configured by the application.
 
-This gem requires a `graphql-anycable` version that supports custom subscription stores.
+This gem requires a `graphql-anycable` version that supports custom subscription stores and store-backed cleanup.
 
 ## Installation
 
@@ -106,6 +106,13 @@ subscriptions, topics, fingerprints, and channels with SQL aggregate queries;
 `scan_count` is accepted for graphql-anycable interface compatibility and is not
 used by PostgreSQL.
 
+## Cleanup
+
+`GraphQL::AnyCable::Cleaner` delegates to this store when `subscription_store`
+is configured as `:postgresql` or `:postgres`. The cleaner removes expired
+subscription rows; PostgreSQL foreign keys with `ON DELETE CASCADE` remove
+associated event and channel rows.
+
 ## Development
 
 Install dependencies and run tests:
@@ -130,8 +137,8 @@ bundle exec rake build
 Publish the same versioned gem artifact to RubyGems and GitHub Releases:
 
 ```sh
-gem push pkg/graphql-anycable_postgresql-store-0.1.0.gem
-gh release create v0.1.0 pkg/graphql-anycable_postgresql-store-0.1.0.gem \
-  --title "v0.1.0" \
+gem push pkg/graphql-anycable_postgresql-store-0.2.0.gem
+gh release create v0.2.0 pkg/graphql-anycable_postgresql-store-0.2.0.gem \
+  --title "v0.2.0" \
   --notes-file CHANGELOG.md
 ```

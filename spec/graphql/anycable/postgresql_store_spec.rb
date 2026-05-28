@@ -26,6 +26,10 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore do
     GraphQL::AnyCable.remove_instance_variable(:@subscription_store) if GraphQL::AnyCable.instance_variable_defined?(:@subscription_store)
     GraphQL::AnyCable.instance_variable_set(:@subscription_store, original_memoized_store) if had_memoized_store
   end
+
+  it "exposes the 0.2.0 release version" do
+    expect(described_class::VERSION).to eq("0.2.0")
+  end
 end
 
 RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
@@ -73,6 +77,13 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
       expect(PG).not_to receive(:connect)
 
       expect(store.subscription_ids_for_fingerprints([])).to eq({})
+    end
+
+    it "builds PostgreSQL cleaner and stats objects without opening a database connection" do
+      expect(PG).not_to receive(:connect)
+
+      expect(store.cleaner).to be_a(GraphQL::AnyCable::PostgreSQLStore::Store::Cleaner)
+      expect(GraphQL::AnyCable::PostgreSQLStore::Store::Stats).to be_a(Class)
     end
 
     it "uses the configured PostgreSQL URL when opening the connection" do
@@ -249,6 +260,23 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
         }
       )
     end
+
+    it "removes expired subscription rows through the store cleaner" do
+      write_subscription("active-subscription", "channel-active", "productUpdated", "fingerprint-active")
+      store.write_subscription(
+        "expired-subscription",
+        channel_id: "channel-expired",
+        data: data.merge(events: {"productUpdated" => "fingerprint-expired"}.to_json),
+        events: [double(topic: "productUpdated", fingerprint: "fingerprint-expired")],
+        expiration_seconds: -1
+      )
+
+      store.cleaner.clean
+
+      expect(subscription_row_exists?("active-subscription")).to be true
+      expect(subscription_row_exists?("expired-subscription")).to be false
+      expect(channel_row_exists?("channel-expired")).to be false
+    end
   end
 
   private
@@ -276,6 +304,20 @@ RSpec.describe GraphQL::AnyCable::PostgreSQLStore::Store do
       events: [double(topic: topic, fingerprint: fingerprint)],
       expiration_seconds: nil
     )
+  end
+
+  def subscription_row_exists?(subscription_id)
+    connection.exec_params(
+      "SELECT EXISTS (SELECT 1 FROM graphql_anycable_test_subscriptions WHERE id = $1)",
+      [subscription_id]
+    ).getvalue(0, 0) == "t"
+  end
+
+  def channel_row_exists?(channel_id)
+    connection.exec_params(
+      "SELECT EXISTS (SELECT 1 FROM graphql_anycable_test_channel_subscriptions WHERE channel_id = $1)",
+      [channel_id]
+    ).getvalue(0, 0) == "t"
   end
 
   def create_tables
